@@ -49,4 +49,5 @@ Configuration:
 Custom settings can be passed (as an object) as the second parameter to the prettyPrint() function.
 
 ... Eh oh! You've reached the end. This README file is not yet finished. If you really need to know more then have a look at the source! :)
+tip: Scroll to line ~592 of prettyprint.js for the juicy config secrets! 
 
