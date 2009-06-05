@@ -283,16 +283,17 @@ var prettyPrint = (function(){
         },
         
         stringify: function(obj) {
-            var type = util.type(obj);
+            var type = util.type(obj),
+                str, first = true;
             if ( type === 'array' ) {
-                var str = '[';
+                str = '[';
                 util.forEach(obj, function(item,i){
                     str += (i===0?'':', ') + util.stringify(item);
                 });
                 return str + ']';
             }
             if (typeof obj === 'object') {
-                var str = '{', first = true;
+                str = '{';
                 for (var i in obj){
                     if (obj.hasOwnProperty(i)) {
                         str += (first?'':', ') + i + ':' + util.stringify(obj[i]);
