@@ -478,12 +478,6 @@ var prettyPrint = (function(){
                 var table = util.table(['Array(' + arr.length + ')', null], 'array'),
                     isEmpty = true;
                 
-                /* Check that we've not reached maxDepth */
-                if (depth === settings.maxDepth) {
-                    //table.addRow( [i, util.common.depthReached()] );
-                    return 'DR';
-                }
-                
                 util.forEach(arr, function(item,i){
                     isEmpty = false;
                     table.addRow([i, typeDealer[ util.type(item) ](item, depth+1, i)]);
