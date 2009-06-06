@@ -297,6 +297,12 @@ var prettyPrint = (function(){
         },
         
         stringify: function(obj) {
+            
+            /* Bit of an ugly duckling!
+               - This fn returns an ATTEMPT at converting an object/array/anyType
+                 into a string, kinda like a JSON-deParser
+               - This is used for when |settings.expanded === false| */
+            
             var type = util.type(obj),
                 str, first = true;
             if ( type === 'array' ) {
@@ -339,7 +345,8 @@ var prettyPrint = (function(){
             
             cx.fillStyle = linearGrad;
             cx.fillRect(0,0,1,30);
-            var dataURL = canvas.toDataURL();
+            
+            var dataURL = canvas.toDataURL && canvas.toDataURL();
             return 'url(' + (dataURL||'') + ')';
         
         })()
