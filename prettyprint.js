@@ -347,7 +347,7 @@ var prettyPrint = (function(){
             cx.fillRect(0,0,1,30);
             
             var dataURL = canvas.toDataURL && canvas.toDataURL();
-            return 'url(' + (dataURL||'') + ')';
+            return 'url(' + (dataURL || '') + ')';
         
         })()
         
