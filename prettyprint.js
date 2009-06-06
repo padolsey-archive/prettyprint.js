@@ -148,18 +148,18 @@ var prettyPrint = (function(){
             
             for (var property in source) {
                 
-                var sourceProperty = source[ property ];
-                
-                if ( !source.hasOwnProperty(property) ) {
-                    continue;
+                if ( source.hasOwnProperty(property) ) {
+                    
+                    var sourceProperty = source[ property ];
+                    
+                    if ( typeof sourceProperty === 'object' ) {
+                        target[ property ] = util.merge( target[ property ], sourceProperty );
+                        continue;
+                    }
+                    
+                    target[ property ] = sourceProperty;
+                    
                 }
-                
-                if ( typeof sourceProperty === 'object' ) {
-                    target[ property ] = util.merge( target[ property ], sourceProperty );
-                    continue;
-                }
-                
-                target[ property ] = sourceProperty;
                 
             }
             
