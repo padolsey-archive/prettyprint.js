@@ -1,7 +1,7 @@
 /*
  AUTHOR James Padolsey (http://james.padolsey.com)
  VERSION 1.01
- UPDATED 05-06-2009
+ UPDATED 06-06-2009
 */
 
 var prettyPrint = (function(){
@@ -17,7 +17,7 @@ var prettyPrint = (function(){
             var el = document.createElement(type), attr;
             
             /*Copy to single object */
-            attrs = util.merge(attrs);
+            attrs = util.merge({}, attrs);
             
             /* Add attributes to el */
             if (attrs && attrs.style) {
@@ -137,25 +137,37 @@ var prettyPrint = (function(){
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         },
         
-        merge: function(o1,o2) {
-            /* Merges two objects,
-               giving the second one precedence */
+        merge: function(target, source) {
             
-            /* TODO: Deep merge */
-            o1 = o1 || {};
-            o2 = o2 || {};
-            var ret = {}, i;
-            for (i in o1){
-                if (o1.hasOwnProperty(i)) {
-                    ret[i] = o1[i];
-                }
+            /* Merges two (or more) objects,
+               giving the last one precedence */
+            
+            if ( typeof target !== 'object' ) {
+                target = {};
             }
-            for (i in o2){
-                if (o2.hasOwnProperty(i)) {
-                    ret[i] = o2[i];
+            
+            for (var property in source) {
+                
+                var sourceProperty = source[ property ];
+                
+                if ( !source.hasOwnProperty(property) ) {
+                    continue;
                 }
+                
+                if ( typeof sourceProperty === 'object' ) {
+                    target[ property ] = util.merge( target[ property ], sourceProperty );
+                    continue;
+                }
+                
+                target[ property ] = sourceProperty;
+                
             }
-            return ret;
+            
+            for (var a = 2, l = arguments.length; a < l; a++) {
+                util.merge(target, arguments[a]);
+            }
+            
+            return target;
         },
         
         count: function(arr, item) {
@@ -257,9 +269,9 @@ var prettyPrint = (function(){
         },
         
         getStyles: function(el, type) {
-            type = prettyPrintThis.config.styles[type] || {};
+            type = prettyPrintThis.settings.styles[type] || {};
             return util.merge(
-                prettyPrintThis.config.styles['default'][el], type[el]
+                {}, prettyPrintThis.settings.styles['default'][el], type[el]
             );
         },
         
@@ -342,13 +354,19 @@ var prettyPrint = (function(){
          *  options :: Options (merged with config)
          */
         
-        var settings = util.merge( prettyPrintThis.config, options );
+        options = options || {};
         
-        var container = util.el('div'),
+        var settings = util.merge( {}, prettyPrintThis.config, options ),
+            container = util.el('div'),
             config = prettyPrintThis.config,
             currentDepth = 0,
             stack = {},
             hasRunOnce = false;
+        
+        /* Expose per-call settings.
+           Note: "config" is overwritten (where necessary) by options/"settings"
+           So, if you need to access/change *DEFAULT* settings then go via ".config" */
+        prettyPrintThis.settings = settings;
         
         var typeDealer = {
             string : function(item){
