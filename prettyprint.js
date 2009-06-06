@@ -1,6 +1,6 @@
 /*
  AUTHOR James Padolsey (http://james.padolsey.com)
- VERSION 1.0
+ VERSION 1.01
  UPDATED 05-06-2009
 */
 
@@ -140,6 +140,8 @@ var prettyPrint = (function(){
         merge: function(o1,o2) {
             /* Merges two objects,
                giving the second one precedence */
+            
+            /* TODO: Deep merge */
             o1 = o1 || {};
             o2 = o2 || {};
             var ret = {}, i;
@@ -350,7 +352,6 @@ var prettyPrint = (function(){
         
         var typeDealer = {
             string : function(item){
-                //return util.el('div');
                 return util.txt('"' + util.shorten(item.replace(/"/g,'\\"')) + '"');
             },
             number : function(item) {
@@ -421,12 +422,17 @@ var prettyPrint = (function(){
             object : function(obj, depth, key) {
                 
                 /* Checking depth + circular refs */
-                if (depth === settings.maxDepth) { return util.common.depthReached(obj, settings); }
+                /* Note, check for circular refs before depth; just makes more sense */
                 var stackKey = util.within(stack).is(obj);
-                if ( stackKey ) { return util.common.circRef(obj, stackKey, settings); }
+                if ( stackKey ) {
+                    return util.common.circRef(obj, stackKey, settings);
+                }
                 stack[key||'TOP'] = obj;
+                if (depth === settings.maxDepth) {
+                    return util.common.depthReached(obj, settings);
+                }
                 
-                var table = util.table(['Object',null],'object'),
+                var table = util.table(['Object', null],'object'),
                     isEmpty = true;
                 
                 for (var i in obj) {
@@ -437,7 +443,7 @@ var prettyPrint = (function(){
                         try {
                             table.addRow([i, typeDealer[ type ](item, depth+1, i)], type);
                         } catch(e) {
-                            /* Security errors are thrown on certain Window properties */
+                            /* Security errors are thrown on certain Window/DOM properties */
                             if (window.console && window.console.log) {
                                 console.log(e.message);
                             }
@@ -469,10 +475,15 @@ var prettyPrint = (function(){
             array : function(arr, depth, key) {
                 
                 /* Checking depth + circular refs */
-                if (depth === settings.maxDepth) { return util.common.depthReached(arr); }
+                /* Note, check for circular refs before depth; just makes more sense */
                 var stackKey = util.within(stack).is(arr);
-                if ( stackKey ) { return util.common.circRef(arr, stackKey); }
+                if ( stackKey ) {
+                    return util.common.circRef(arr, stackKey);
+                }
                 stack[key||'TOP'] = arr;
+                if (depth === settings.maxDepth) {
+                    return util.common.depthReached(arr);
+                }
                 
                 /* Accepts a table and modifies it */
                 var table = util.table(['Array(' + arr.length + ')', null], 'array'),
@@ -554,6 +565,7 @@ var prettyPrint = (function(){
                 
                 date = date.toString().split(/\s/);
                 
+                /* TODO: Make cross-browser functional */
                 miniTable
                     .addRow(['Time', date[4]])
                     .addRow(['Date', date.slice(0,4).join('-')]);
@@ -583,8 +595,14 @@ var prettyPrint = (function(){
     };
     
     /* Configuration */
+    
+    /* All items can be overwridden by passing an
+       "options" object when calling prettyPrint */
     prettyPrintThis.config = {
+        
+        /* Try setting this to false to save space */
         expanded: true,
+        
         forceObject: false,
         maxDepth: 3,
         styles: {
@@ -646,9 +664,7 @@ var prettyPrint = (function(){
                     border: '1px solid #000',
                     verticalAlign: 'top',
                     fontFamily: '"Consolas","Lucida Console",Courier,mono',
-                    whiteSpace: 'nowrap',
-                    backgroundImage: util.innerShadows,
-                    backgroundRepeat: 'repeat-x'
+                    whiteSpace: 'nowrap'
                 },
                 th: {
                     padding: '5px',
