@@ -1,7 +1,7 @@
 /*
  AUTHOR James Padolsey (http://james.padolsey.com)
- VERSION 1.01
- UPDATED 06-06-2009
+ VERSION 1.02
+ UPDATED 07-06-2009
 */
 
 var prettyPrint = (function(){
@@ -22,14 +22,7 @@ var prettyPrint = (function(){
             /* Add attributes to el */
             if (attrs && attrs.style) {
                 var styles = attrs.style;
-                for (var prop in styles) {
-                    if (styles.hasOwnProperty(prop)) {
-                        try{
-                            /* Yes, IE6 SUCKS! */
-                            el.style[prop] = styles[prop];
-                        }catch(e){}
-                    }
-                }
+                util.applyCSS( el, attrs.style );
                 delete attrs.style;
             }
             for (attr in attrs) {
@@ -40,6 +33,18 @@ var prettyPrint = (function(){
             
             return el;
         
+        },
+        
+        applyCSS: function(el, styles) {
+            /* Applies CSS to a single element */
+            for (var prop in styles) {
+                if (styles.hasOwnProperty(prop)) {
+                    try{
+                        /* Yes, IE6 SUCKS! */
+                        el.style[prop] = styles[prop];
+                    }catch(e){}
+                }
+            }
         },
         
         txt: function(t) {
@@ -57,7 +62,21 @@ var prettyPrint = (function(){
                 tr = util.el('tr'), td,
                 attrs = {
                     style: util.getStyles(cellType, type),
-                    colSpan: colSpan
+                    colSpan: colSpan,
+                    onmouseover: function() {
+                        var tds = this.parentNode.childNodes;
+                        util.forEach(tds, function(cell){
+                            if (cell.nodeName.toLowerCase() !== 'td') { return; }
+                            util.applyCSS(cell, util.getStyles('td_hover', type));
+                        });
+                    },
+                    onmouseout: function() {
+                        var tds = this.parentNode.childNodes;
+                        util.forEach(tds, function(cell){
+                            if (cell.nodeName.toLowerCase() !== 'td') { return; }
+                            util.applyCSS(cell, util.getStyles('td', type));
+                        });
+                    }
                 };
                 
             util.forEach(cells, function(cell){
@@ -542,22 +561,6 @@ var prettyPrint = (function(){
                 stack[key||'TOP'] = fn;
                 
                 var miniTable = util.table(['Function',null], 'function'),
-                    span = util.el('span', {
-                        innerHTML:  'function(){...} <b style="visibility:hidden;">[+]</b>',
-                        onmouseover: function() {
-                            this.getElementsByTagName('b')[0].style.visibility = 'visible';
-                        },
-                        onmouseout: function() {
-                            this.getElementsByTagName('b')[0].style.visibility = 'hidden';
-                        },
-                        onclick: function() {
-                            this.style.display = 'none';
-                            this.parentNode.appendChild(miniTable.node);
-                        },
-                        style: {
-                            cursor: 'pointer'
-                        }
-                    }),
                     argsTable = util.table(['Arguments']),
                     args = fn.toString().match(/\((.+?)\)/),
                     body = fn.toString().match(/\(.*?\)\s+?\{?([\S\s]+)/)[1].replace(/\}?$/,'');
@@ -566,36 +569,31 @@ var prettyPrint = (function(){
                     .addRow(['arguments', args ? args[1].replace(/[^\w_,\s]/g,'') : '<small>[none/native]</small>'])
                     .addRow(['body', body]);
                     
-                return settings.expanded ? miniTable.node : span;
+                return settings.expanded ? miniTable.node : util.expander(
+                    'function(){...}',
+                    'Click to see more about this function.',
+                    function(){
+                        this.parentNode.appendChild(miniTable.node);
+                    }
+                );
             },
             'date' : function(date) {
                 
-                var miniTable = util.table(['Date',null], 'date');
-                var span = util.el('span', {
-                    innerHTML:  (+date) + ' <b style="visibility:hidden;">[+]</b>',
-                    onmouseover: function() {
-                        this.getElementsByTagName('b')[0].style.visibility = 'visible';
-                    },
-                    onmouseout: function() {
-                        this.getElementsByTagName('b')[0].style.visibility = 'hidden';
-                    },
-                    onclick: function() {
-                        this.style.display = 'none';
-                        this.parentNode.appendChild(miniTable.node);
-                    },
-                    style: {
-                        cursor: 'pointer'
-                    }
-                });
+                var miniTable = util.table(['Date',null], 'date'),
+                    sDate = date.toString().split(/\s/);
                 
-                date = date.toString().split(/\s/);
-                
-                /* TODO: Make cross-browser functional */
+                /* TODO: Make this work well in IE! */
                 miniTable
-                    .addRow(['Time', date[4]])
-                    .addRow(['Date', date.slice(0,4).join('-')]);
+                    .addRow(['Time', sDate[4]])
+                    .addRow(['Date', sDate.slice(0,4).join('-')]);
                     
-                return settings.expanded ? miniTable.node : span;
+                return settings.expanded ? miniTable.node : util.expander(
+                    'Date (timestamp): ' + (+date),
+                    'Click to see a little more info about this date',
+                    function() {
+                        this.parentNode.appendChild(miniTable.node);
+                    }
+                );
                 
             },
             'boolean' : function(bool) {
@@ -690,6 +688,10 @@ var prettyPrint = (function(){
                     verticalAlign: 'top',
                     fontFamily: '"Consolas","Lucida Console",Courier,mono',
                     whiteSpace: 'nowrap'
+                },
+                td_hover: {
+                    /* Styles defined here will apply to all tr:hover > td,
+                        - Be aware that "inheritable" properties (e.g. fontWeight) WILL BE INHERITED */
                 },
                 th: {
                     padding: '5px',
