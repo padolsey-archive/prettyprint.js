@@ -560,7 +560,7 @@ var prettyPrint = (function(){
                     }),
                     argsTable = util.table(['Arguments']),
                     args = fn.toString().match(/\((.+?)\)/),
-                    body = fn.toString().match(/\{([\S\s]+)/)[1].replace(/\}$/,'');
+                    body = fn.toString().match(/\(.*?\)\s+?\{?([\S\s]+)/)[1].replace(/\}?$/,'');
                     
                 miniTable
                     .addRow(['arguments', args ? args[1].replace(/[^\w_,\s]/g,'') : '<small>[none/native]</small>'])
