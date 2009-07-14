@@ -1,7 +1,9 @@
 /*
  AUTHOR James Padolsey (http://james.padolsey.com)
- VERSION 1.02
- UPDATED 07-06-2009
+ VERSION 1.02.x
+ UPDATED 07-14-2009
+
+ (hacked by David Waller to incorporate support for jQuery objects)
 */
 
 var prettyPrint = (function(){
@@ -234,7 +236,7 @@ var prettyPrint = (function(){
                     return oType;
                 }
                 if (typeof v === 'object') {
-                    return 'object';
+                    return v.jquery && typeof v.jquery === 'string' ? 'jquery' : 'object';
                 }
                 if (v === window || v === document) {
                     return 'object';
@@ -428,9 +430,9 @@ var prettyPrint = (function(){
             domelement : function(element, depth) {
                 
                 var miniTable = util.table(['DOMElement',null], 'domelement'),
-                    props = ['id', 'className', 'innerHTML'];
+                    props = ['id', 'className', 'innerHTML', 'src', 'href'], elname = element.nodeName || '';
                 
-                miniTable.addRow(['tag', '&lt;' + element.nodeName.toLowerCase() + '&gt;']);
+                miniTable.addRow(['tag', '&lt;' + elname.toLowerCase() + '&gt;']);
                     
                 util.forEach(props, function(prop){
                     if ( element[prop] ) {
@@ -439,7 +441,7 @@ var prettyPrint = (function(){
                 });
                 
                 return settings.expanded ? miniTable.node : util.expander(
-                    'DOMElement (' + element.nodeName.toLowerCase() + ')',
+                    'DOMElement (' + elname.toLowerCase() + ')',
                     'Click to show more',
                     function() {
                         this.parentNode.appendChild(miniTable.node);
@@ -462,6 +464,9 @@ var prettyPrint = (function(){
                         this.parentNode.appendChild(miniTable.node);
                     }
                 );
+            },
+            jquery : function(obj, depth, key) {
+                return typeDealer['array'](obj, depth, key, true);
             },
             object : function(obj, depth, key) {
                 
@@ -516,7 +521,7 @@ var prettyPrint = (function(){
                 return ret;
                 
             },
-            array : function(arr, depth, key) {
+            array : function(arr, depth, key, jquery) {
                 
                 /* Checking depth + circular refs */
                 /* Note, check for circular refs before depth; just makes more sense */
@@ -530,18 +535,24 @@ var prettyPrint = (function(){
                 }
                 
                 /* Accepts a table and modifies it */
-                var table = util.table(['Array(' + arr.length + ')', null], 'array'),
+                var me = jquery ? 'jQuery' : 'Array', table = util.table([me + '(' + arr.length + ')', null], jquery ? 'jquery' : me.toLowerCase()),
                     isEmpty = true;
                 
+                if (jquery){
+                    table.addRow(['selector',arr.selector]);
+                }
+                    
                 util.forEach(arr, function(item,i){
                     isEmpty = false;
                     table.addRow([i, typeDealer[ util.type(item) ](item, depth+1, i)]);
                 });
                 
-                if (isEmpty) {
-                    table.addRow(['<small>[empty]</small>']);
-                } else {
-                    table.thead.appendChild( util.hRow(['index','value'], 'colHeader') );
+                if (!jquery){
+                    if (isEmpty) {
+                        table.addRow(['<small>[empty]</small>']);
+                    } else {
+                        table.thead.appendChild( util.hRow(['index','value'], 'colHeader') );
+                    }
                 }
                 
                 return settings.expanded ? table.node : util.expander(
@@ -649,6 +660,11 @@ var prettyPrint = (function(){
             object: {
                 th: {
                     backgroundColor: '#1F96CF'
+                }
+            },
+            jquery : {
+                th: {
+                    backgroundColor: '#FBF315'
                 }
             },
             error: {
