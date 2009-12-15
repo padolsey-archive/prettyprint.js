@@ -1,9 +1,9 @@
 /*
  AUTHOR James Padolsey (http://james.padolsey.com)
- VERSION 1.02.x
+ VERSION 1.02.1
  UPDATED 07-14-2009
-
- (hacked by David Waller to incorporate support for jQuery objects)
+ CONTRIBUTORS
+    David Waller
 */
 
 var prettyPrint = (function(){
