@@ -639,7 +639,7 @@ var prettyPrint = (function(){
         
         forceObject: false,
         maxDepth: 3,
-        maxStringLength = 40,
+        maxStringLength: 40,
         styles: {
             array: {
                 th: {
