@@ -220,7 +220,7 @@ var prettyPrint = (function(){
                 }
             }
             if ((max == index) && (len != index)) {
-                fn( "...", ""+index+".."+arr.length, arr );
+                fn( "...", ""+index+".."+(arr.length-1), arr );
             }
             
             return true;
