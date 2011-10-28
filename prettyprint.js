@@ -235,15 +235,22 @@ var prettyPrint = (function(){
             return tbl.getElementsByTagName('thead')[0];
         },
         
-        forEach: function(arr, fn) {
+        forEach: function(arr, max, fn) {
             
+            if (!fn) {
+                fn = max;
+            }
+
             /* Helper: iteration */
             var len = arr.length, index = -1;
             
-            while (len > ++index) {
+            while ((len > ++index) && (max != index)) {
                 if(fn( arr[index], index, arr ) === false) {
                     break;
                 }
+            }
+            if ((max == index) && (len != index)) {
+                fn( "...", ""+index+".."+(arr.length-1), arr );
             }
             
             return true;
@@ -571,12 +578,12 @@ var prettyPrint = (function(){
                 if (jquery){
                     table.addRow(['selector',arr.selector]);
                 }
-                    
-                util.forEach(arr, function(item,i){
+
+                util.forEach(arr, settings.maxArray, function(item,i){
                     isEmpty = false;
                     table.addRow([i, typeDealer[ util.type(item) ](item, depth+1, i)]);
                 });
-                
+
                 if (!jquery){
                     if (isEmpty) {
                         table.addRow(['<small>[empty]</small>']);
@@ -669,6 +676,7 @@ var prettyPrint = (function(){
         
         forceObject: false,
         maxDepth: 3,
+        maxArray: -1,  // default is unlimited
         styles: {
             array: {
                 th: {
