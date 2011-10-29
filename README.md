@@ -46,8 +46,14 @@ Or, appending it to the document:
 Configuration:
 ---
 
-Custom settings can be passed (as an object) as the second parameter to the prettyPrint() function.
+Custom settings can be passed (as an object) as the second argument to the prettyPrint() function:
 
-... Eh oh! You've reached the end. This README file is not yet finished. If you really need to know more then have a look at the source! :)
-tip: Scroll to line ~592 of prettyprint.js for the juicy config secrets! 
+	prettyPrint(myFoo, {
+		// Config
+		maxArray: 20, // Set max for array display (default: infinity)
+		expanded: false, // Expanded view (boolean) (default: true),
+		maxDepth: 5 // Max member depth (when displaying objects) (default: 3)
+	})
+
+tip: Scroll to line ~679 of prettyprint.js for more configuration options.
 
