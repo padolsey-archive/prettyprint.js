@@ -520,7 +520,20 @@ var prettyPrint = (function(){
 				var table = util.table(['Object', null],'object'),
 					isEmpty = true;
 				
+				var keys = [];
 				for (var i in obj) {
+					if (obj.hasOwnProperty(i)) {
+						keys.push(i);
+					}
+				}
+				if (settings.sortKeys) {
+					keys.sort();
+				}
+
+				var len = keys.length;
+
+				for (var j = 0; j < len; j++) {
+					i = keys[j];
 					if (!obj.hasOwnProperty || obj.hasOwnProperty(i)) {
 						var item = obj[i],
 							type = util.type(item);
@@ -680,7 +693,7 @@ var prettyPrint = (function(){
 		
 		/* Try setting this to false to save space */
 		expanded: true,
-		
+		sortKeys: false,  // if true, will sort object keys
 		forceObject: false,
 		maxDepth: 3,
 		maxArray: -1,  // default is unlimited
