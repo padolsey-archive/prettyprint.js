@@ -50,9 +50,10 @@ Custom settings can be passed (as an object) as the second argument to the prett
 
 	prettyPrint(myFoo, {
 		// Config
-		maxArray: 20, // Set max for array display (default: infinity)
+		maxArray: 20,    // Set max for array display (default: infinity)
 		expanded: false, // Expanded view (boolean) (default: true),
-		maxDepth: 5 // Max member depth (when displaying objects) (default: 3)
+		maxDepth: 5,     // Max member depth (when displaying objects) (default: 3)
+		sortKeys: true   // sort the object keys (default: false)
 	})
 
 tip: Scroll to line ~679 of prettyprint.js for more configuration options.
