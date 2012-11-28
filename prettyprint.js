@@ -580,7 +580,7 @@ var prettyPrint = (function(){
 				}
 
 				util.forEach(arr, function(item,i){
-                    if (++count > settings.maxArray) {
+                    if (settings.maxArray >= 0 && ++count > settings.maxArray) {
                         table.addRow([
                             i + '..' + (arr.length-1),
                             typeDealer[ util.type(item) ]('...', depth+1, i)
