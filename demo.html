@@ -12,20 +12,20 @@
 			</style>
 	</head>
 	<body>
-		
+
 		<!-- prettyPrint demo -->
 		<div id="debug"></div>
-		
+
 		<script src="prettyprint.js"></script>
 		<script>
-		
+
 			var randomObject = {
 				life: 42.01,
 				r1: new RegExp('\\$..?[0-5]+'),
 				r2: /foo(.+?)$/,
 				funky: function(foo, bib, bab) {
 					if (foo !== bib) {
-                        console.log('Error: ', '...');               
+                        console.log('Error: ', '...');
                     }
                     return RegExp(bab).exec(foo);
 				},
@@ -38,15 +38,15 @@
 				},
 				domThing: document.body.firstChild
 			};
-			
+
 			randomObject.circularRef = randomObject;
-			
+
 			var ppTable = prettyPrint(randomObject);
 
 			document.getElementById('debug').appendChild(ppTable);
-			
+
 		</script>
-		
+
 	</body>
 </html>
 
