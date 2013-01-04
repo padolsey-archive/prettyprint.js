@@ -180,9 +180,8 @@ var prettyPrint = (function(){
 		},
 		
 		shorten: function(str) {
-			var max = 40;
 			str = str.replace(/^\s\s*|\s\s*$|\n/g,'');
-			return str.length > max ? (str.substring(0, max-1) + '...') : str;
+			return str.length > prettyPrint.settings.maxTextLen ? (str.substring(0, prettyPrint.settings.maxTextLen-1) + '...') : str;
 		},
 		
 		htmlentities: function(str) {
@@ -684,6 +683,7 @@ var prettyPrint = (function(){
 		forceObject: false,
 		maxDepth: 3,
 		maxArray: -1,  // default is unlimited
+		maxTextLen: 40,
 		styles: {
 			array: {
 				th: {
