@@ -180,7 +180,7 @@ var prettyPrint = (function(){
 		},
 		
 		shorten: function(str) {
-			var max = 40;
+			var max = prettyPrintThis.maxStringLength;
 			str = str.replace(/^\s\s*|\s\s*$|\n/g,'');
 			return str.length > max ? (str.substring(0, max-1) + '...') : str;
 		},
@@ -687,7 +687,7 @@ var prettyPrint = (function(){
 	
 	/* Configuration */
 	
-	/* All items can be overwridden by passing an
+	/* All items can be overridden by passing an
 	   "options" object when calling prettyPrint */
 	prettyPrintThis.config = {
 		
@@ -696,6 +696,7 @@ var prettyPrint = (function(){
 		sortKeys: false,  // if true, will sort object keys
 		forceObject: false,
 		maxDepth: 3,
+		maxStringLength: 40,
 		maxArray: -1,  // default is unlimited
 		styles: {
 			array: {
