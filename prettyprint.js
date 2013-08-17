@@ -271,6 +271,9 @@ var prettyPrint = (function(){
 				if (/^(string|number|array|regexp|function|date|boolean)$/.test(oType)) {
 					return oType;
 				}
+				if (/^(u?int(8(clamped)?|16|32)|float(32|64))array$/.test(oType)) {
+					return 'array';
+				}
 				if (typeof v === 'object') {
 					return v.jquery && typeof v.jquery === 'string' ? 'jquery' : 'object';
 				}
@@ -310,7 +313,7 @@ var prettyPrint = (function(){
 			},
 			depthReached: function(obj, settings) {
 				return util.expander(
-					'[DEPTH REACHED]',
+					'[EXPAND]',
 					'Click to show this item anyway',
 					function() {
 						try {
@@ -579,17 +582,38 @@ var prettyPrint = (function(){
 					table.addRow(['selector',arr.selector]);
 				}
 
-				util.forEach(arr, function(item,i){
-                    if (settings.maxArray >= 0 && ++count > settings.maxArray) {
-                        table.addRow([
-                            i + '..' + (arr.length-1),
-                            typeDealer[ util.type(item) ]('...', depth+1, i)
-                        ]);
-                        return false;
-                    }
-					isEmpty = false;
-					table.addRow([i, typeDealer[ util.type(item) ](item, depth+1, i)]);
-				});
+				if (arr.length > settings.maxArray) {
+					for (var i = 0, length = arr.length; i < length; i += settings.maxArray)
+					(function (i) {
+						var until = Math.min(i + settings.maxArray, length);
+						table.addRow([
+							i + '..' + (until - 1),
+							util.expander(
+								'[EXPAND]',
+								'Click to show items from this slice',
+								function() {
+									var obj = {};
+									for (var j = i; j < until; j++) {
+										obj[j] = arr[j];
+									}
+									try {
+										this.parentNode.appendChild( prettyPrintThis(obj,{maxDepth:1}) );
+									} catch(e) {
+										this.parentNode.appendChild(
+											util.table(['ERROR OCCURED DURING OBJECT RETRIEVAL'],'error').addRow([e.message]).node   
+										);
+									}
+								}
+							)
+						]);
+						isEmpty = false;
+					})(i);
+				} else {
+					util.forEach(arr, function(item,i){
+						isEmpty = false;
+						table.addRow([i, typeDealer[ util.type(item) ](item, depth+1, i)]);
+					});
+				}
 
 				if (!jquery){
 					if (isEmpty) {
