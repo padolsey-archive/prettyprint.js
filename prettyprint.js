@@ -520,7 +520,7 @@ var prettyPrint = (function(){
 					return util.common.depthReached(obj, settings);
 				}
 				
-				var table = util.table(['Object', null],'object'),
+				var table = util.table([(obj.constructor && obj.constructor.name) || 'Object', null],'object'),
 					isEmpty = true;
 				
 				for (var i in obj) {
@@ -574,7 +574,7 @@ var prettyPrint = (function(){
 				}
 				
 				/* Accepts a table and modifies it */
-				var me = jquery ? 'jQuery' : 'Array', table = util.table([me + '(' + arr.length + ')', null], jquery ? 'jquery' : me.toLowerCase()),
+				var me = jquery ? 'jQuery' : 'Array', table = util.table([((arr.constructor && arr.constructor.name) || me) + '(' + arr.length + ')', null], jquery ? 'jquery' : me.toLowerCase()),
 					isEmpty = true,
                     count = 0;
 				
