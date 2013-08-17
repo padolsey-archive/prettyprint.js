@@ -524,7 +524,7 @@ var prettyPrint = (function(){
 					isEmpty = true;
 				
 				for (var i in obj) {
-					if (!obj.hasOwnProperty || obj.hasOwnProperty(i)) {
+					if (!settings.filter || settings.filter.call(obj, i)) {
 						var item = obj[i],
 							type = util.type(item);
 						isEmpty = false;
@@ -708,6 +708,7 @@ var prettyPrint = (function(){
 		forceObject: false,
 		maxDepth: 3,
 		maxArray: -1,  // default is unlimited
+		filter: Object.prototype.hasOwnProperty,
 		styles: {
 			array: {
 				th: {

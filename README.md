@@ -52,7 +52,11 @@ Custom settings can be passed (as an object) as the second argument to the prett
 		// Config
 		maxArray: 20, // Set max for array display (default: infinity)
 		expanded: false, // Expanded view (boolean) (default: true),
-		maxDepth: 5 // Max member depth (when displaying objects) (default: 3)
+		maxDepth: 5, // Max member depth (when displaying objects) (default: 3)
+		filter: function (key, value) {
+			/* `this` is current object */
+			return key !== '_';
+		} // custom object keys filter (default: hasOwnProperty)
 	})
 
 tip: Scroll to line ~679 of prettyprint.js for more configuration options.
