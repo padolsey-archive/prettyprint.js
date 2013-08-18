@@ -597,7 +597,9 @@ var prettyPrint = (function(){
 										obj[j] = arr[j];
 									}
 									try {
-										this.parentNode.appendChild( prettyPrintThis(obj,{maxDepth:1}) );
+										var child = prettyPrintThis(obj,{maxDepth:1});
+										child.getElementsByTagName('th')[0].style.display = 'none';
+										this.parentNode.appendChild(child);
 									} catch(e) {
 										this.parentNode.appendChild(
 											util.table(['ERROR OCCURED DURING OBJECT RETRIEVAL'],'error').addRow([e.message]).node   
