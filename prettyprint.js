@@ -180,7 +180,7 @@ var prettyPrint = (function(){
 		},
 		
 		shorten: function(str) {
-			var max = 40;
+			var max = prettyPrintThis.maxStringLength;
 			str = str.replace(/^\s\s*|\s\s*$|\n/g,'');
 			return str.length > max ? (str.substring(0, max-1) + '...') : str;
 		},
@@ -522,19 +522,32 @@ var prettyPrint = (function(){
 				
 				var table = util.table([(obj.constructor && obj.constructor.name) || 'Object', null],'object'),
 					isEmpty = true;
-				
+
+				var keys = [];
 				for (var i in obj) {
 					if (!settings.filter || settings.filter.call(obj, i)) {
-						var item = obj[i],
-							type = util.type(item);
-						isEmpty = false;
-						try {
-							table.addRow([i, typeDealer[ type ](item, depth+1, i)], type);
-						} catch(e) {
-							/* Security errors are thrown on certain Window/DOM properties */
-							if (window.console && window.console.log) {
-								console.log(e.message);
-							}
+						keys.push(i);
+					}
+				}
+
+				if (settings.sortKeys) {
+					keys.sort();
+				}
+
+				var len = keys.length;
+
+				for (var j = 0; j < len; j++) {
+					var i = keys[j],
+						item = obj[i],
+						type = util.type(item);
+
+					isEmpty = false;
+					try {
+						table.addRow([i, typeDealer[ type ](item, depth+1, i)], type);
+					} catch(e) {
+						/* Security errors are thrown on certain Window/DOM properties */
+						if (window.console && window.console.log) {
+							console.log(e.message);
 						}
 					}
 				}
@@ -576,7 +589,7 @@ var prettyPrint = (function(){
 				/* Accepts a table and modifies it */
 				var me = jquery ? 'jQuery' : 'Array', table = util.table([((arr.constructor && arr.constructor.name) || me) + '(' + arr.length + ')', null], jquery ? 'jquery' : me.toLowerCase()),
 					isEmpty = true,
-                    count = 0;
+					count = 0;
 				
 				if (jquery){
 					table.addRow(['selector',arr.selector]);
@@ -700,16 +713,17 @@ var prettyPrint = (function(){
 	
 	/* Configuration */
 	
-	/* All items can be overwridden by passing an
+	/* All items can be overridden by passing an
 	   "options" object when calling prettyPrint */
 	prettyPrintThis.config = {
 		
 		/* Try setting this to false to save space */
 		expanded: true,
-		
+		sortKeys: false,  // if true, will sort object keys
 		forceObject: false,
 		maxDepth: 3,
-		maxArray: -1,  // default is unlimited
+		maxStringLength: 40,
+		maxArray: Infinity,  // default is unlimited
 		filter: Object.prototype.hasOwnProperty,
 		styles: {
 			array: {
