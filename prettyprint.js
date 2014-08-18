@@ -180,7 +180,7 @@ var prettyPrint = (function(){
 		},
 		
 		shorten: function(str) {
-			var max = 40;
+			var max = prettyPrintThis.maxStringLength;
 			str = str.replace(/^\s\s*|\s\s*$|\n/g,'');
 			return str.length > max ? (str.substring(0, max-1) + '...') : str;
 		},
@@ -271,6 +271,9 @@ var prettyPrint = (function(){
 				if (/^(string|number|array|regexp|function|date|boolean)$/.test(oType)) {
 					return oType;
 				}
+				if (/^(u?int(8(clamped)?|16|32)|float(32|64))array$/.test(oType)) {
+					return 'array';
+				}
 				if (typeof v === 'object') {
 					return v.jquery && typeof v.jquery === 'string' ? 'jquery' : 'object';
 				}
@@ -310,7 +313,7 @@ var prettyPrint = (function(){
 			},
 			depthReached: function(obj, settings) {
 				return util.expander(
-					'[DEPTH REACHED]',
+					'[EXPAND]',
 					'Click to show this item anyway',
 					function() {
 						try {
@@ -517,21 +520,34 @@ var prettyPrint = (function(){
 					return util.common.depthReached(obj, settings);
 				}
 				
-				var table = util.table(['Object', null],'object'),
+				var table = util.table([(obj.constructor && obj.constructor.name) || 'Object', null],'object'),
 					isEmpty = true;
-				
+
+				var keys = [];
 				for (var i in obj) {
-					if (!obj.hasOwnProperty || obj.hasOwnProperty(i)) {
-						var item = obj[i],
-							type = util.type(item);
-						isEmpty = false;
-						try {
-							table.addRow([i, typeDealer[ type ](item, depth+1, i)], type);
-						} catch(e) {
-							/* Security errors are thrown on certain Window/DOM properties */
-							if (window.console && window.console.log) {
-								console.log(e.message);
-							}
+					if (!settings.filter || settings.filter.call(obj, i)) {
+						keys.push(i);
+					}
+				}
+
+				if (settings.sortKeys) {
+					keys.sort();
+				}
+
+				var len = keys.length;
+
+				for (var j = 0; j < len; j++) {
+					var i = keys[j],
+						item = obj[i],
+						type = util.type(item);
+
+					isEmpty = false;
+					try {
+						table.addRow([i, typeDealer[ type ](item, depth+1, i)], type);
+					} catch(e) {
+						/* Security errors are thrown on certain Window/DOM properties */
+						if (window.console && window.console.log) {
+							console.log(e.message);
 						}
 					}
 				}
@@ -571,25 +587,48 @@ var prettyPrint = (function(){
 				}
 				
 				/* Accepts a table and modifies it */
-				var me = jquery ? 'jQuery' : 'Array', table = util.table([me + '(' + arr.length + ')', null], jquery ? 'jquery' : me.toLowerCase()),
+				var me = jquery ? 'jQuery' : 'Array', table = util.table([((arr.constructor && arr.constructor.name) || me) + '(' + arr.length + ')', null], jquery ? 'jquery' : me.toLowerCase()),
 					isEmpty = true,
-                    count = 0;
+					count = 0;
 				
 				if (jquery){
 					table.addRow(['selector',arr.selector]);
 				}
 
-				util.forEach(arr, function(item,i){
-                    if (settings.maxArray >= 0 && ++count > settings.maxArray) {
-                        table.addRow([
-                            i + '..' + (arr.length-1),
-                            typeDealer[ util.type(item) ]('...', depth+1, i)
-                        ]);
-                        return false;
-                    }
-					isEmpty = false;
-					table.addRow([i, typeDealer[ util.type(item) ](item, depth+1, i)]);
-				});
+				if (arr.length > settings.maxArray) {
+					for (var i = 0, length = arr.length; i < length; i += settings.maxArray)
+					(function (i) {
+						var until = Math.min(i + settings.maxArray, length);
+						table.addRow([
+							i + '..' + (until - 1),
+							util.expander(
+								'[EXPAND]',
+								'Click to show items from this slice',
+								function() {
+									var obj = {};
+									for (var j = i; j < until; j++) {
+										obj[j] = arr[j];
+									}
+									try {
+										var child = prettyPrintThis(obj,{maxDepth:1});
+										child.getElementsByTagName('th')[0].style.display = 'none';
+										this.parentNode.appendChild(child);
+									} catch(e) {
+										this.parentNode.appendChild(
+											util.table(['ERROR OCCURED DURING OBJECT RETRIEVAL'],'error').addRow([e.message]).node   
+										);
+									}
+								}
+							)
+						]);
+						isEmpty = false;
+					})(i);
+				} else {
+					util.forEach(arr, function(item,i){
+						isEmpty = false;
+						table.addRow([i, typeDealer[ util.type(item) ](item, depth+1, i)]);
+					});
+				}
 
 				if (!jquery){
 					if (isEmpty) {
@@ -674,16 +713,19 @@ var prettyPrint = (function(){
 	
 	/* Configuration */
 	
-	/* All items can be overwridden by passing an
+	/* All items can be overridden by passing an
 	   "options" object when calling prettyPrint */
 	prettyPrintThis.config = {
 		
 		/* Try setting this to false to save space */
 		expanded: true,
-		
+		sortKeys: false,  // if true, will sort object keys
 		forceObject: false,
 		maxDepth: 3,
-		maxArray: -1,  // default is unlimited
+		maxStringLength: 40,
+		maxArray: Infinity,  // default is unlimited
+		filter: Object.prototype.hasOwnProperty,
+		maxTextLen: 40,
 		styles: {
 			array: {
 				th: {
