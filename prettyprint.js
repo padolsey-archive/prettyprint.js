@@ -182,7 +182,7 @@ var prettyPrint = (function(){
 		shorten: function(str) {
 			var max = prettyPrintThis.maxStringLength;
 			str = str.replace(/^\s\s*|\s\s*$|\n/g,'');
-			return str.length > prettyPrint.settings.maxTextLen ? (str.substring(0, prettyPrint.settings.maxTextLen-1) + '...') : str;
+			return str.length > max ? (str.substring(0, max-1) + '...') : str;
 		},
 		
 		htmlentities: function(str) {
