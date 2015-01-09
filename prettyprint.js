@@ -544,7 +544,7 @@ var prettyPrint = (function(){
 					);
 				}
 				
-				var ret = (settings.expanded || hasRunOnce) ? table.node : util.expander(
+				var ret = (settings.expanded || !hasRunOnce) ? table.node : util.expander(
 					util.stringify(obj),
 					'Click to show more',
 					function() {
