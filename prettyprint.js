@@ -54,7 +54,6 @@ var prettyPrint = (function(){
 			
 			/* Add attributes to el */
 			if (attrs && attrs.style) {
-				var styles = attrs.style;
 				util.applyCSS( el, attrs.style );
 				delete attrs.style;
 			}
@@ -72,10 +71,10 @@ var prettyPrint = (function(){
 			/* Applies CSS to a single element */
 			for (var prop in styles) {
 				if (styles.hasOwnProperty(prop)) {
-					try{
+					if (el.style){
 						/* Yes, IE6 SUCKS! */
 						el.style[prop] = styles[prop];
-					}catch(e){}
+					}
 				}
 			}
 		},
@@ -93,23 +92,20 @@ var prettyPrint = (function(){
 			/* colSpan is calculated by length of null items in array */
 			var colSpan = util.count(cells, null) + 1,
 				tr = util.el('tr'), td,
+				onmouse = function(mousetype){
+					return function() {
+						var tds = this.parentNode.childNodes;
+						util.forEach(tds, function(cell){
+							if (cell.nodeName.toLowerCase() !== 'td') { return; }
+							util.applyCSS(cell, util.getStyles(mousetype, type));
+						});
+					};
+				},
 				attrs = {
 					style: util.getStyles(cellType, type),
 					colSpan: colSpan,
-					onmouseover: function() {
-						var tds = this.parentNode.childNodes;
-						util.forEach(tds, function(cell){
-							if (cell.nodeName.toLowerCase() !== 'td') { return; }
-							util.applyCSS(cell, util.getStyles('td_hover', type));
-						});
-					},
-					onmouseout: function() {
-						var tds = this.parentNode.childNodes;
-						util.forEach(tds, function(cell){
-							if (cell.nodeName.toLowerCase() !== 'td') { return; }
-							util.applyCSS(cell, util.getStyles('td', type));
-						});
-					}
+					onmouseover: onmouse('td_hover'),
+					onmouseout: onmouse('td')
 				};
 				
 			util.forEach(cells, function(cell){
@@ -142,20 +138,16 @@ var prettyPrint = (function(){
 			headings = headings || [];
 			
 			/* Creates new table: */
-			var attrs = {
-					thead: {
-						style:util.getStyles('thead',type)
-					},
-					tbody: {
-						style:util.getStyles('tbody',type)
-					},
-					table: {
-						style:util.getStyles('table',type)
-					}
+			var attrs = {},
+				setGetters = function (styleType){
+					attrs[styleType] = {
+						style:util.getStyles(styleType,type)
+					};
+					return util.el(styleType, attrs[styleType])
 				},
-				tbl = util.el('table', attrs.table),
-				thead = util.el('thead', attrs.thead),
-				tbody = util.el('tbody', attrs.tbody);
+				tbl = setGetters('table'),
+				thead = setGetters('thead'),
+				tbody = setGetters('tbody');
 				
 			if (headings.length) {
 				tbl.appendChild(thead);
@@ -215,7 +207,7 @@ var prettyPrint = (function(){
 				
 			}
 			
-			for (var a = 2, l = arguments.length; a < l; a++) {
+			for (var a = 2; a < arguments.length; a++) {
 				util.merge(target, arguments[a]);
 			}
 			
@@ -224,7 +216,7 @@ var prettyPrint = (function(){
 		
 		count: function(arr, item) {
 			var count = 0;
-			for (var i = 0, l = arr.length; i< l; i++) {
+			for (var i = 0; i< arr.length; i++) {
 				if (arr[i] === item) {
 					count++;
 				}
@@ -272,7 +264,7 @@ var prettyPrint = (function(){
 					return oType;
 				}
 				if (typeof v === 'object') {
-					return v.jquery && typeof v.jquery === 'string' ? 'jquery' : 'object';
+					return typeof v.jquery === 'string' ? 'jquery' : 'object';
 				}
 				if (v === window || v === document) {
 					return 'object';
@@ -313,10 +305,11 @@ var prettyPrint = (function(){
 					'[DEPTH REACHED]',
 					'Click to show this item anyway',
 					function() {
+						var appendChild = this.parentNode.appendChild;
 						try {
-							this.parentNode.appendChild( prettyPrintThis(obj,{maxDepth:1}) );
+							appendChild( prettyPrintThis(obj,{maxDepth:1}) );
 						} catch(e) {
-							this.parentNode.appendChild(
+							appendChild(
 								util.table(['ERROR OCCURED DURING OBJECT RETRIEVAL'],'error').addRow([e.message]).node   
 							);
 						}
@@ -326,22 +319,24 @@ var prettyPrint = (function(){
 		},
 		
 		getStyles: function(el, type) {
-			type = prettyPrintThis.settings.styles[type] || {};
+			var styles = prettyPrintThis.settings.styles;
+			type = styles[type] || {};
 			return util.merge(
-				{}, prettyPrintThis.settings.styles['default'][el], type[el]
+				{}, styles['default'][el], type[el]
 			);
 		},
 		
 		expander: function(text, title, clickFn) {
+			var onmouse = function (visibility){
+				return function() {
+					this.getElementsByTagName('b')[0].style.visibility = visibility;
+				};
+			}
 			return util.el('a', {
 				innerHTML:  util.shorten(text) + ' <b style="visibility:hidden;">[+]</b>',
 				title: title,
-				onmouseover: function() {
-					this.getElementsByTagName('b')[0].style.visibility = 'visible';
-				},
-				onmouseout: function() {
-					this.getElementsByTagName('b')[0].style.visibility = 'hidden';
-				},
+				onmouseover: onmouse('visible'),
+				onmouseout: onmouse('hidden'),
 				onclick: function() {
 					this.style.display = 'none';
 					clickFn.call(this);
