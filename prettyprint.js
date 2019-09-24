@@ -536,7 +536,15 @@ var prettyPrint = (function(){
 					}
 				}
 				
-				if (isEmpty) {
+				if (obj instanceof Error)
+				{
+					table.thead.appendChild(
+						util.hRow(['key','value'], 'colHeader')
+					);
+					table.addRow(['name',obj.name]);
+					table.addRow(['message',obj.message]);
+				}
+				else if (isEmpty) {
 					table.addRow(['<small>[empty]</small>']);
 				} else {
 					table.thead.appendChild(
